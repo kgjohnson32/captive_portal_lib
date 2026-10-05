@@ -7,6 +7,7 @@
 #include <string>
 #include <Arduino.h>
 #include <ArduinoJson.h>
+#include <ArduinoJson.hpp>
 
 const char LOGIN_FORM[] = R"rawhtml(
 		<!DOCTYPE html>
