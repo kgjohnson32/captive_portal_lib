@@ -200,11 +200,13 @@ void ESPPortal::begin() {
       server.on("/reset",     HTTP_GET, [this]() { this->handleHttpReset();   } );
 
       server.begin();
+      Serial.println("");
       Serial.println("Server Started");
     }
 
     if (WiFi.status() == WL_CONNECTED) {
       Serial.println("IN STA MODE, Connected");
+      Serial.print("IP Address: ");
       Serial.println(WiFi.localIP());
     }
 
@@ -344,6 +346,7 @@ void ESPPortal::handleSave() {
       
       saveCredentials(wifi_ssid.c_str(), wifi_pass.c_str());
 
+      Serial.println("");
       Serial.println("\nConnected!");
       Serial.print("IP: "); 
       Serial.println(WiFi.localIP());
