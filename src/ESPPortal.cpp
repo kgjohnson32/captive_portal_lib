@@ -4,10 +4,9 @@
 #include <DNSServer.h>
 #include <ESP8266WebServer.h>
 #include <LittleFS.h>
-#include "FS.h"
 #include <string>
 #include <Arduino.h>
-#include <ArduinoJSON.h>
+#include <ArduinoJson.h>
 
 const char LOGIN_FORM[] = R"rawhtml(
 		<!DOCTYPE html>
@@ -45,7 +44,7 @@ char* sta_pass;
 
 int isSetup = 0;
 
-const char* CONFIG_FILE = "wifi_cred.txt";
+const char* CONFIG_FILE = "wifi_config.json";
 
 // Object Declarations
 IPAddress apID(192, 168, 4, 1);
