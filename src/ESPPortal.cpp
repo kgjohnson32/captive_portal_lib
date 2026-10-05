@@ -110,6 +110,38 @@ void ESPPortal::clearCredsReset() {
   }
 }
 
+void ESPPortal::listen() {
+
+}
+
+void ESPPortal::WIFIconnect() { 
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(sta_ssid, sta_pass);
+
+  int attempts = 0;
+
+  while (WiFi.status() != WL_CONNECTED && attempts < 30) {
+    delay(500);
+    Serial.print(".");
+    attempts++;
+  }
+
+  server.on("/",          HTTP_GET, [this]() { this->handleRoot();        } );
+  server.on("/list",      HTTP_GET, [this]() { this->handleFileList();    } );
+  server.on("/list/file", HTTP_GET, [this]() { this->readTextFile();      } );
+  server.on("/reset",     HTTP_GET, [this]() { this->handleHttpReset();   } );
+
+  server.begin();
+  Serial.println("");
+  Serial.println("Server Started");
+   
+  if (WiFi.status() == WL_CONNECTED) {
+    Serial.println("IN STA MODE, Connected");
+    Serial.print("IP Address: ");
+    Serial.println(WiFi.localIP());
+  }
+}
+
 void ESPPortal::begin() {
     Serial.begin(115200);
     
@@ -182,32 +214,7 @@ void ESPPortal::begin() {
       Serial.println(sta_ssid);
       Serial.println(sta_pass);
 
-      WiFi.mode(WIFI_STA);
-      WiFi.begin(sta_ssid, sta_pass);
-
-      int attempts = 0;
-
-      while (WiFi.status() != WL_CONNECTED && attempts < 30) {
-
-        delay(500);
-        Serial.print(".");
-        attempts++;
-      }
-
-      server.on("/",          HTTP_GET, [this]() { this->handleRoot();        } );
-      server.on("/list",      HTTP_GET, [this]() { this->handleFileList();    } );
-      server.on("/list/file", HTTP_GET, [this]() { this->readTextFile();      } );
-      server.on("/reset",     HTTP_GET, [this]() { this->handleHttpReset();   } );
-
-      server.begin();
-      Serial.println("");
-      Serial.println("Server Started");
-    }
-
-    if (WiFi.status() == WL_CONNECTED) {
-      Serial.println("IN STA MODE, Connected");
-      Serial.print("IP Address: ");
-      Serial.println(WiFi.localIP());
+      WIFIconnect();
     }
 
     while(isSetup == 1 && WiFi.status() == WL_CONNECTED) {

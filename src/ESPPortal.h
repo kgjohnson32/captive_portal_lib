@@ -24,8 +24,6 @@ class ESPPortal
 		int isSetup							= 0;
 		IPAddress apID;
 
-//	protected:
-
 	public:
 		ESPPortal();
 		void begin();
@@ -40,6 +38,8 @@ class ESPPortal
 		void clearCredsReset();
 		void handleSave();
 		void readTextFile();
+		void WIFIconnect();
+		void listen();
 };
 
 #endif
