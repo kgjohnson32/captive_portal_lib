@@ -111,7 +111,8 @@ void ESPPortal::clearCredsReset() {
 }
 
 void ESPPortal::listen() {
-
+    server.handleClient();
+    delay(30);
 }
 
 void ESPPortal::WIFIconnect() { 
