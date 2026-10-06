@@ -18,11 +18,12 @@ class ESPPortal
 		const int DNS_PORT 			= 53; 
 		const char* AP_SSID 		= "Board-setup";
 		const char* CONFIG_FILE = "wifi_cred.json";
+		int isSetup							= 0;
+		IPAddress apID;
 		DNSServer dnsServer;
 		ESP8266WebServer server;
 		JsonDocument doc;
-		int isSetup							= 0;
-		IPAddress apID;
+		WiFiMode_t _mode;
 
 	public:
 		ESPPortal();
@@ -38,8 +39,9 @@ class ESPPortal
 		void clearCredsReset();
 		void handleSave();
 		void readTextFile();
-		void WIFIconnect();
+		void WIFIconnect(WiFiMode_t m, bool mapRoutes);
 		void listen();
+		wl_status_t getWiFiStatus();
 };
 
 #endif

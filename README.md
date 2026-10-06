@@ -10,7 +10,10 @@ Your sketch:
 #include [includes ..]
 #include "src/CaptivePortal.h"
 
-[vars / defines]
+[vars / defines] ...
+
+//Captive Portal Object "p"
+ESPPortal p;
 
 void setup() {
 
@@ -19,14 +22,13 @@ void setup() {
   Serial.println("");
   Serial.println("Setup, begin");
 
-  ESPPortal p;
-
+  // Start the portal
   p.begin();
 	
 }
 
 void loop() {
-
+  p.listn();
 }
 ```
 

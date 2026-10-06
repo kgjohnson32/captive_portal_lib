@@ -115,8 +115,9 @@ void ESPPortal::listen() {
     delay(30);
 }
 
-void ESPPortal::WIFIconnect() { 
-  WiFi.mode(WIFI_STA);
+void ESPPortal::WIFIconnect(WiFiMode_t mode, bool mapRoutes = true) { 
+  _mode = mode;
+  WiFi.mode(_mode);
   WiFi.begin(sta_ssid, sta_pass);
 
   int attempts = 0;
@@ -127,10 +128,12 @@ void ESPPortal::WIFIconnect() {
     attempts++;
   }
 
-  server.on("/",          HTTP_GET, [this]() { this->handleRoot();        } );
-  server.on("/list",      HTTP_GET, [this]() { this->handleFileList();    } );
-  server.on("/list/file", HTTP_GET, [this]() { this->readTextFile();      } );
-  server.on("/reset",     HTTP_GET, [this]() { this->handleHttpReset();   } );
+  if (mapRoutes) {
+    server.on("/",          HTTP_GET, [this]() { this->handleRoot();        } );
+    server.on("/list",      HTTP_GET, [this]() { this->handleFileList();    } );
+    server.on("/list/file", HTTP_GET, [this]() { this->readTextFile();      } );
+    server.on("/reset",     HTTP_GET, [this]() { this->handleHttpReset();   } );
+  }
 
   server.begin();
   Serial.println("");
@@ -204,6 +207,7 @@ void ESPPortal::begin() {
       }
 
     } else {
+
       loadCredentials();
 
       if (sta_ssid == nullptr) {
@@ -215,7 +219,8 @@ void ESPPortal::begin() {
       Serial.println(sta_ssid);
       Serial.println(sta_pass);
 
-      WIFIconnect();
+      WiFiMode_t currentMode = WIFI_STA;
+      WIFIconnect(currentMode, true);
     }
 
     while(isSetup == 1 && WiFi.status() == WL_CONNECTED) {
@@ -230,11 +235,18 @@ void ESPPortal::clearCredentialsAndReset() {
   Serial.println("[RESET] Erasing Wi-Fi configurations...");
 
   if (LittleFS.exists(CONFIG_FILE)) {
+    Serial.println("Config file removed.");
     LittleFS.remove(CONFIG_FILE);
+  }
+
+  if (LittleFS.exists("wifi_cred.txt")) {
+    Serial.println("Config file removed.");
+    LittleFS.remove("wifi_cred.txt");
   }
 
   WiFi.disconnect(true); // Erase SDK cached credentials as well
   delay(1000);
+  
   Serial.println("[RESET] Restarting module...");
   ESP.restart();
 }
@@ -253,7 +265,7 @@ void ESPPortal::handleFileList() {
   }
   
   output += "</table>";
-  output += "<br><a href='/'>&larr; Back to Setup</a> | <a href='/reset' style='color:red;'>⚠️ Factory Reset ESP</a>";
+  output += "<br><a href='/'>&larr; Back to Setup</a> | <a href='/reset' style='color:red;'>Factory Reset ESP</a>";
   output += "</body></html>";
   
   server.send(200, "text/html", output);
@@ -314,12 +326,20 @@ void ESPPortal::readTextFile() {
   server.send(200, "text/plain", fileContent);
 }
 
+wl_status_t ESPPortal::getWiFiStatus() {
+
+  return WiFi.status();
+}
+
 void ESPPortal::handleSave() {
   Serial.println("Handle save");
 
   if (server.hasArg("ssid")) {
-    const String wifi_ssid = server.arg("ssid");
-    const String wifi_pass = server.arg("password");
+    const char *wifi_ssid = server.arg("ssid").c_str();
+    const char *wifi_pass = server.arg("password").c_str();
+
+    sta_ssid = const_cast<char*>(wifi_ssid);
+    sta_pass = const_cast<char*>(wifi_pass);
 
     Serial.println("\n--- Credentials Received ---");
     Serial.print("SSID: "); 
@@ -327,32 +347,19 @@ void ESPPortal::handleSave() {
     Serial.print("Password: "); 
     Serial.println(wifi_pass);
 
-    const String response = "<h1>Success!</h1><p>ESP12 is now attempting to connect to " + wifi_ssid + "...</p>";
+    const String s = sta_ssid;
+    const String response = "<h1>Success!</h1><p>ESP12 is now attempting to connect to " + s + "...</p>";
     server.send(200, "text/html", response);
     
     delay(2000);
 
     // WiFi.onStationModeConnected(std::function<void (const WiFiEventStationModeConnected &)>)
-
-    WiFi.mode(WIFI_STA);
-    WiFi.begin(wifi_ssid, wifi_pass);
-
-    Serial.print("Connecting to ");
-    Serial.print(wifi_ssid);
-    Serial.println(" ...");
-
-    int attempts = 0;
-
-    while (WiFi.status() != WL_CONNECTED && attempts < 30) {
-
-      delay(500);
-      Serial.print(".");
-      attempts++;
-    }
+    WiFiMode_t currentMode = WIFI_STA;
+    WIFIconnect(currentMode, true);
 
     if (WiFi.status() == WL_CONNECTED) {
       
-      saveCredentials(wifi_ssid.c_str(), wifi_pass.c_str());
+      saveCredentials(wifi_ssid, wifi_pass);
 
       Serial.println("");
       Serial.println("\nConnected!");
@@ -361,11 +368,6 @@ void ESPPortal::handleSave() {
 
       dnsServer.stop();
       
-      server.on("/",          HTTP_GET, [this]() { this->handleRoot();        } );
-      server.on("/list",      HTTP_GET, [this]() { this->handleFileList();    } );
-      server.on("/list/file", HTTP_GET, [this]() { this->readTextFile();      } );
-      server.on("/reset",     HTTP_GET, [this]() { this->handleHttpReset();   } );
-
       server.begin();
       
       return; 
