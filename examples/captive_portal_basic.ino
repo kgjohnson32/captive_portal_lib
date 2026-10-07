@@ -8,18 +8,17 @@
 #include <string>
 #include <Arduino.h>
 
+ESPPortal p;
+
 void setup() {
   Serial.begin(115200);
 
   Serial.println("");
   Serial.println("Setup, begin");
-
-  ESPPortal p;
-
-  p.begin();
   
+  p.begin();
 }
 
 void loop() {
-
+  
 }

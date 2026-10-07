@@ -2,7 +2,8 @@
  * captive_portal_lib.ino
  * 
  * ESPPortal, a library for the ESP8266/Arduino platform
- * for configuration of WiFi credentials using a Captive Portal
+ * for configuration of WiFi credentials 
+ * using wildcard dns ap to serve a basic config page.
  * 
  * @author Kurt Johnson
  * @author kj32
