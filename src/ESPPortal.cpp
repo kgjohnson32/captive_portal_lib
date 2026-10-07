@@ -1,4 +1,16 @@
-#include "ESPPortal.h"
+/**
+ * ESPPortal.cpp
+ * 
+ * ESPPortal, a library for the ESP8266/Arduino platform
+ * for configuration of WiFi credentials using a Captive Portal
+ * 
+ * @author Kurt Johnson
+ * @author kj32
+ * @version 0.0.0
+ * @license MIT
+ */
+
+#include "ESPPortal.hpp"
 #include <iostream>
 #include <ESP8266WiFi.h>
 #include <DNSServer.h>

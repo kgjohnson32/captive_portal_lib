@@ -1,5 +1,17 @@
-#ifndef ESP_PORTAL_h
-#define ESP_PORTAL_h
+/**
+ * ESPPortal.hpp
+ * 
+ * ESPPortal, a library for the ESP8266/Arduino platform
+ * for configuration of WiFi credentials using a Captive Portal
+ * 
+ * @author Kurt Johnson
+ * @author kj32
+ * @version 0.0.0
+ * @license MIT
+ */
+
+#ifndef ESP_PORTAL_hpp
+#define ESP_PORTAL_hpp
 
 #include <iostream>
 #include <ESP8266WiFi.h>
@@ -9,6 +21,7 @@
 #include <string>
 #include <Arduino.h>
 #include <ArduinoJson.h>
+#include <ArduinoJson.hpp>
 
 extern const char LOGIN_FORM[] PROGMEM;
 
