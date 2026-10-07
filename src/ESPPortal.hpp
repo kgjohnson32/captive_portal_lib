@@ -13,15 +13,14 @@
 #ifndef ESP_PORTAL_hpp
 #define ESP_PORTAL_hpp
 
+#include <Arduino.h>
 #include <iostream>
 #include <ESP8266WiFi.h>
 #include <DNSServer.h>
 #include <ESP8266WebServer.h>
 #include <LittleFS.h>
 #include <string>
-#include <Arduino.h>
-#include <ArduinoJson.h>
-#include <ArduinoJson.hpp>
+#include "ArduinoJson/ArduinoJson-v7.4.3.h"
 
 extern const char LOGIN_FORM[] PROGMEM;
 

@@ -10,6 +10,7 @@
  * @license MIT
  */
 
+#include <Arduino.h>
 #include "ESPPortal.hpp"
 #include <iostream>
 #include <ESP8266WiFi.h>
@@ -17,9 +18,7 @@
 #include <ESP8266WebServer.h>
 #include <LittleFS.h>
 #include <string>
-#include <Arduino.h>
-#include <ArduinoJson.h>
-#include <ArduinoJson.hpp>
+#include "ArduinoJson/ArduinoJson-v7.4.3.h"
 
 const char LOGIN_FORM[] = R"rawhtml(
 		<!DOCTYPE html>
