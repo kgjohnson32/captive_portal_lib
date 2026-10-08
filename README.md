@@ -28,7 +28,7 @@ void setup() {
 }
 
 void loop() {
-  p.listn();
+  p.listen();
 }
 ```
 
