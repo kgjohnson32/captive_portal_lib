@@ -56,6 +56,16 @@ char* sta_pass;
 
 int isSetup = 0;
 
+#define DEBUG false
+
+#if DEBUG 
+  #define DEBUG_PRINT(a) Serial.print(a)
+  #define DEBUG_PRINTLN(a) Serial.println(a)
+#else 
+  #define DEBUG_PRINT(a)
+  #define DEBUG_PRINTLN(a)
+#endif
+
 const char* CONFIG_FILE = "wifi_config.json";
 
 // Object Declarations
@@ -64,39 +74,39 @@ DNSServer dnsServer;
 ESP8266WebServer server(80);
 
 ESPPortal::ESPPortal() {
-  Serial.println("Created New Captive Portal\n");
+  DEBUG_PRINTLN("Created New Captive Portal\n");
 }
 
 void ESPPortal::handleRoot() {
-  Serial.println("Handle root");
+  DEBUG_PRINTLN("Handle root");
   server.send_P(200, "text/html", LOGIN_FORM);
 }
 
 bool ESPPortal::hasCredentials() {
-  Serial.println("File check"); // If the file exists, we may have creds.
+  DEBUG_PRINTLN("File check"); // If the file exists, we may have creds.
 
   File configFile = LittleFS.open(CONFIG_FILE, "r");  
   if (!configFile) {
-    Serial.println(" - >> Does not have credentails .......");
-    Serial.println(configFile ? true : false);
+    DEBUG_PRINTLN(" - >> Does not have credentails .......");
+    DEBUG_PRINTLN(configFile ? true : false);
   }
 
   return configFile ? true : false;
 }
 
 void ESPPortal::saveCredentials(const char* ssid, const char* pass) {
-  Serial.println("saveCredentials ");
-  Serial.print(ssid);
-  Serial.print(" " );
-  Serial.print(pass);
+  DEBUG_PRINTLN("saveCredentials ");
+  DEBUG_PRINT(ssid);
+  DEBUG_PRINT(" " );
+  DEBUG_PRINT(pass);
 
   File file = LittleFS.open(CONFIG_FILE, "w");
 
   if (!file) {
-    Serial.println("No file");
+    DEBUG_PRINTLN("No file");
     return; 
   }
-  Serial.println("File exists.");
+  DEBUG_PRINTLN("File exists.");
 
   doc["sta_ssid"] = ssid;
   doc["sta_pass"] = pass;
@@ -105,7 +115,7 @@ void ESPPortal::saveCredentials(const char* ssid, const char* pass) {
   file.flush();
   file.close(); 
 
-  Serial.println("[FS] Credentials saved to flash!");
+  DEBUG_PRINTLN("[FS] Credentials saved to flash!");
 }
 
 void ESPPortal::handleNotFound() {
@@ -114,7 +124,7 @@ void ESPPortal::handleNotFound() {
 }
 
 void ESPPortal::clearCredsReset() {
-  Serial.println("[RESET] Erasing Wi-Fi configurations...");
+  DEBUG_PRINTLN("[RESET] Erasing Wi-Fi configurations...");
 
   if (LittleFS.exists(CONFIG_FILE)) {
     LittleFS.remove(CONFIG_FILE);
@@ -135,7 +145,7 @@ void ESPPortal::WIFIconnect(WiFiMode_t mode, bool mapRoutes = true) {
 
   while (WiFi.status() != WL_CONNECTED && attempts < 30) {
     delay(500);
-    Serial.print(".");
+    DEBUG_PRINT(".");
     attempts++;
   }
 
@@ -147,13 +157,13 @@ void ESPPortal::WIFIconnect(WiFiMode_t mode, bool mapRoutes = true) {
   }
 
   server.begin();
-  Serial.println("");
-  Serial.println("Server Started");
+  DEBUG_PRINTLN("");
+  DEBUG_PRINTLN("Server Started");
    
   if (WiFi.status() == WL_CONNECTED) {
-    Serial.println("IN STA MODE, Connected");
-    Serial.print("IP Address: ");
-    Serial.println(WiFi.localIP());
+    DEBUG_PRINTLN("IN STA MODE, Connected");
+    DEBUG_PRINT("IP Address: ");
+    DEBUG_PRINTLN(WiFi.localIP());
   }
 }
 
@@ -163,10 +173,10 @@ void ESPPortal::begin() {
     LittleFS.begin();
     delay(20);
 
-    Serial.println("Begin");
+    DEBUG_PRINTLN("Begin");
       
     if (hasCredentials() == false) {
-      Serial.println("\nInitializing Scoreboard Captive Portal...");
+      DEBUG_PRINTLN("\nInitializing Scoreboard Captive Portal...");
 
       // Access Point
       WiFi.mode(WIFI_AP);
@@ -175,32 +185,32 @@ void ESPPortal::begin() {
       delay(10);
       
       IPAddress apIP = WiFi.softAPIP();
-      Serial.print("Access Point Created. SSID: "); 
-      Serial.println(AP_SSID);
+      DEBUG_PRINT("Access Point Created. SSID: "); 
+      DEBUG_PRINTLN(AP_SSID);
 
-      Serial.print("IP Address: "); 
-      Serial.println(apIP);
+      DEBUG_PRINT("IP Address: "); 
+      DEBUG_PRINTLN(apIP);
 
-      Serial.print("DNS Port ");
-      Serial.println(DNS_PORT);
+      DEBUG_PRINT("DNS Port ");
+      DEBUG_PRINTLN(DNS_PORT);
 
       // Override DNS queries (*) to the ESP IP
       dnsServer.start(DNS_PORT, "*", apIP);
-      Serial.println("DNS Sever started"); 
+      DEBUG_PRINTLN("DNS Sever started"); 
 
       server.on("/",      HTTP_GET,   [this]() { this->handleRoot(); } );
-      Serial.println("Route: Root registered");
+      DEBUG_PRINTLN("Route: Root registered");
       server.on("/save",  HTTP_POST,  [this]() { this->handleSave(); } );
-      Serial.println("Route: Save registered");
+      DEBUG_PRINTLN("Route: Save registered");
 
       server.onNotFound([this]() { this->handleNotFound(); } );
-      Serial.println("Route: Not Found registered");
+      DEBUG_PRINTLN("Route: Not Found registered");
 
-      Serial.println("Starting server");
+      DEBUG_PRINTLN("Starting server");
       server.begin();
-      Serial.println("Server Started");
+      DEBUG_PRINTLN("Server Started");
 
-      Serial.println("Preparing AP");
+      DEBUG_PRINTLN("Preparing AP");
 
       while(isSetup == 0) {
  
@@ -222,13 +232,13 @@ void ESPPortal::begin() {
       loadCredentials();
 
       if (sta_ssid == nullptr) {
-        Serial.println("Did not parse file.");
+        DEBUG_PRINTLN("Did not parse file.");
         return;
       }
 
-      Serial.print("Connecting using stored creds ");
-      Serial.println(sta_ssid);
-      Serial.println(sta_pass);
+      DEBUG_PRINT("Connecting using stored creds ");
+      DEBUG_PRINTLN(sta_ssid);
+      DEBUG_PRINTLN(sta_pass);
 
       WiFiMode_t currentMode = WIFI_STA;
       WIFIconnect(currentMode, true);
@@ -243,27 +253,27 @@ void ESPPortal::begin() {
 }
 
 void ESPPortal::clearCredentialsAndReset() {
-  Serial.println("[RESET] Erasing Wi-Fi configurations...");
+  DEBUG_PRINTLN("[RESET] Erasing Wi-Fi configurations...");
 
   if (LittleFS.exists(CONFIG_FILE)) {
-    Serial.println("Config file removed.");
+    DEBUG_PRINTLN("Config file removed.");
     LittleFS.remove(CONFIG_FILE);
   }
 
   if (LittleFS.exists("wifi_cred.txt")) {
-    Serial.println("Config file removed.");
+    DEBUG_PRINTLN("Config file removed.");
     LittleFS.remove("wifi_cred.txt");
   }
 
   WiFi.disconnect(true); // Erase SDK cached credentials as well
   delay(1000);
   
-  Serial.println("[RESET] Restarting module...");
+  DEBUG_PRINTLN("[RESET] Restarting module...");
   ESP.restart();
 }
 
 void ESPPortal::handleFileList() {
-  Serial.println("Retrieving the file system listing.");
+  DEBUG_PRINTLN("Retrieving the file system listing.");
   
   String output = "<html><head><title>LittleFS Files</title><style>body{font-family:sans-serif;padding:20px;} table{width:100%;max-width:500px;border-collapse:collapse;} th,td{padding:8px;text-align:left;border-bottom:1px solid #ddd;}</style></head><body>";
   output += "<h2>LittleFS File System Contents</h2>";
@@ -290,10 +300,10 @@ void ESPPortal::handleHttpReset() {
 
 bool ESPPortal::loadCredentials() {
 
-  Serial.println((bool) LittleFS.exists(CONFIG_FILE));
+  DEBUG_PRINTLN((bool) LittleFS.exists(CONFIG_FILE));
   
   if (!LittleFS.exists(CONFIG_FILE)) {
-    Serial.println("LittleFS Config MIA");
+    DEBUG_PRINTLN("LittleFS Config MIA");
     return false;
   }
 
@@ -302,8 +312,8 @@ bool ESPPortal::loadCredentials() {
   configFile.close();
 
   if (error) {
-    Serial.print("Failed to parse JSON: ");
-    Serial.println(error.c_str());
+    DEBUG_PRINT("Failed to parse JSON: ");
+    DEBUG_PRINTLN(error.c_str());
 
     return false;
   }
@@ -311,8 +321,8 @@ bool ESPPortal::loadCredentials() {
   sta_ssid = strdup(doc["sta_ssid"]);
   sta_pass = strdup(doc["sta_pass"]);
 
-  Serial.print("Obtained stored SSID: ");
-  Serial.println(sta_ssid);
+  DEBUG_PRINT("Obtained stored SSID: ");
+  DEBUG_PRINTLN(sta_ssid);
   
   isSetup = 1;
 
@@ -321,13 +331,13 @@ bool ESPPortal::loadCredentials() {
 
 void ESPPortal::readTextFile() {
   if (!LittleFS.begin()) {
-    Serial.println("An error occurred while mounting LittleFS");
+    DEBUG_PRINTLN("An error occurred while mounting LittleFS");
     return;
   }
 
   File file = LittleFS.open(CONFIG_FILE, "r");
   if (!file) {
-    Serial.println("Failed to open file for reading");
+    DEBUG_PRINTLN("Failed to open file for reading");
     return;
   }
 
@@ -343,7 +353,7 @@ wl_status_t ESPPortal::getWiFiStatus() {
 }
 
 void ESPPortal::handleSave() {
-  Serial.println("Handle save");
+  DEBUG_PRINTLN("Handle save");
 
   if (server.hasArg("ssid")) {
     const char *wifi_ssid = server.arg("ssid").c_str();
@@ -352,11 +362,11 @@ void ESPPortal::handleSave() {
     sta_ssid = const_cast<char*>(wifi_ssid);
     sta_pass = const_cast<char*>(wifi_pass);
 
-    Serial.println("\n--- Credentials Received ---");
-    Serial.print("SSID: "); 
-    Serial.println(wifi_ssid);
-    Serial.print("Password: "); 
-    Serial.println(wifi_pass);
+    DEBUG_PRINTLN("\n--- Credentials Received ---");
+    DEBUG_PRINT("SSID: "); 
+    DEBUG_PRINTLN(wifi_ssid);
+    DEBUG_PRINT("Password: "); 
+    DEBUG_PRINTLN(wifi_pass);
 
     const String s = sta_ssid;
     const String response = "<h1>Success!</h1><p>ESP12 is now attempting to connect to " + s + "...</p>";
@@ -372,10 +382,10 @@ void ESPPortal::handleSave() {
       
       saveCredentials(wifi_ssid, wifi_pass);
 
-      Serial.println("");
-      Serial.println("\nConnected!");
-      Serial.print("IP: "); 
-      Serial.println(WiFi.localIP());
+      DEBUG_PRINTLN("");
+      DEBUG_PRINTLN("\nConnected!");
+      DEBUG_PRINT("IP: "); 
+      DEBUG_PRINTLN(WiFi.localIP());
 
       dnsServer.stop();
       
@@ -384,7 +394,7 @@ void ESPPortal::handleSave() {
       return; 
 
     } else {
-      Serial.println("We didn't get a connection!!!");
+      DEBUG_PRINTLN("We didn't get a connection!!!");
     }
 
   } else {
